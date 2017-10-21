@@ -11,11 +11,11 @@ object Fallback {
   final def fallbackValue[I,O](default : O)
                               (f : (I) => FuncOutput[O])
                               (implicit ec : ExecutionContext) : Func[I,O] =
-    fallback(() => default)(f)
+    genericFallback(() => default)(f)
 
-  final def fallback[I,O](default : () => O)
-                         (f : (I) => FuncOutput[O])
-                         (implicit ec : ExecutionContext): Func[I, O] =
+  final def genericFallback[I,O](default : () => O)
+                                (f : (I) => FuncOutput[O])
+                                (implicit ec : ExecutionContext): Func[I, O] =
     (input: I) =>
       f(input) fallbackTo {
         wrapOutput(default())
