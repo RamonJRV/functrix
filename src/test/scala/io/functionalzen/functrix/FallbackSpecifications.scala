@@ -17,7 +17,7 @@ class FallbackSpecifications
       i
     }
 
-  import Func.createFuncFromFunction
+  import Functrix.createFuncFromFunction
 
   val defaultValue = 42
 
