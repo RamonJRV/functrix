@@ -1,16 +1,20 @@
 package io.functionalzen.functrix
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 object Func {
 
   type FuncOutput[O] = Future[O]
 
+  final def wrapOutput[O](o : O) : FuncOutput[O] = Future successful o
+
+  implicit def createFuncFromFunction[I,O](f : (I) => O)
+                                          (implicit ec : ExecutionContext) : Func[I,O] =
+    (input: I) => Future(f(input))
+
 }//end object Func
 
-/**
-  * Created by ramonromeroyvigil on 10/21/17.
-  */
+
 trait Func[I,O] { self =>
 
   import Func.FuncOutput
@@ -18,9 +22,8 @@ trait Func[I,O] { self =>
 
   def apply(input : I) : FuncOutput[O]
 
-  final def map[P](f : (I => FuncOutput[O]) => I => FuncOutput[P]): Func[I, P] = new Func[I, P] {
-    override def apply(input: I) : FuncOutput[P] = f(self.apply)(input)
-  }
+  final def map[P](f : (I => FuncOutput[O]) => I => FuncOutput[P]): Func[I, P] =
+    (input: I) => f(self.apply)(input)
 
   final def flatMap[P](f : (I => FuncOutput[O]) => Func[I,P]) : Func[I,P] = f(self.apply)
 
