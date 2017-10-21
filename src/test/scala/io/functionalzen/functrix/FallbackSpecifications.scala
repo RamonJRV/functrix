@@ -3,7 +3,7 @@ package io.functionalzen.functrix
 import org.scalatest.AsyncFlatSpec
 import org.scalatest.Matchers
 
-class FallbackProperties
+class FallbackSpecifications
   extends AsyncFlatSpec
   with Matchers {
 
@@ -19,8 +19,10 @@ class FallbackProperties
 
   import Func.createFuncFromFunction
 
+  val defaultValue = 42
+
+
   it should "never throw exception from downstream Func" in {
-    val defaultValue = 42
 
     val func =
       for {
@@ -30,6 +32,22 @@ class FallbackProperties
 
     func(0) map { res =>
       assert(res == defaultValue)
+    }
+  }
+
+  it should "always return value from downstream Func if it is valid" in {
+    val goodFunc : Int => Int = identity[Int]
+
+    val func =
+      for {
+        f <- goodFunc
+        fallback <- fallbackValue(defaultValue)(f)
+      } yield fallback
+
+    val testValue = 0
+
+    func(testValue) map { res =>
+      assert(res == testValue)
     }
   }
 
