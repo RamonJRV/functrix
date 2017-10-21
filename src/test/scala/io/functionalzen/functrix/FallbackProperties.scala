@@ -13,7 +13,7 @@ class FallbackProperties
 
   val excFunc : Int => Int =
     (i) => {
-      throw(new Exception("excFunc Exception"))
+      throw new Exception("excFunc Exception")
       i
     }
 
