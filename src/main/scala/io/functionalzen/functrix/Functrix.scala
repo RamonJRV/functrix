@@ -4,12 +4,12 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object Functrix {
 
-  type FuncOutput[O] = Future[O]
+  type FunctrixOutput[O] = Future[O]
 
-  final def wrapOutput[O](o : O) : FuncOutput[O] = Future successful o
+  final def wrapOutput[O](o : O) : FunctrixOutput[O] = Future successful o
 
-  implicit def createFuncFromFunction[I,O](f : (I) => O)
-                                          (implicit ec : ExecutionContext) : Functrix[I,O] =
+  implicit def createFunctrixFromFunction[I,O](f : (I) => O)
+                                              (implicit ec : ExecutionContext) : Functrix[I,O] =
     (input: I) => Future(f(input))
 
 }//end object Func
@@ -17,15 +17,15 @@ object Functrix {
 
 trait Functrix[I,O] { self =>
 
-  import Functrix.FuncOutput
+  import Functrix.FunctrixOutput
 
 
-  def apply(input : I) : FuncOutput[O]
+  def apply(input : I) : FunctrixOutput[O]
 
-  final def map[P](f : (I => FuncOutput[O]) => I => FuncOutput[P]): Functrix[I, P] =
+  final def map[P](f : (I => FunctrixOutput[O]) => I => FunctrixOutput[P]): Functrix[I, P] =
     (input: I) => f(self.apply)(input)
 
-  final def flatMap[P](f : (I => FuncOutput[O]) => Functrix[I,P]) : Functrix[I,P] = f(self.apply)
+  final def flatMap[P](f : (I => FunctrixOutput[O]) => Functrix[I,P]) : Functrix[I,P] = f(self.apply)
 
 
 }//end trait Func
