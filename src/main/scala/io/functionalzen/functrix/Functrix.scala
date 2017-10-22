@@ -12,6 +12,8 @@ object Functrix {
                                               (implicit ec : ExecutionContext) : Functrix[I,O] =
     (input: I) => Future(f(input))
 
+  def wrapException[O](ex : Throwable) : FunctrixOutput[O] = Future failed ex
+
 }//end object Func
 
 
