@@ -1,5 +1,7 @@
 name := "functrix"
 
+organization := "io.functionalzen"
+
 version := "v0.1"
 
 scalaVersion := "2.12.4"
