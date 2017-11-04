@@ -2,11 +2,14 @@ package io.functionalzen.functrix
 
 import io.functionalzen.functrix.event.Event
 
-trait EventMonitor {
-
+object EventMonitor {
   type MonitorName = String
 
-  val monitorName : MonitorName
+}
+
+trait EventMonitor {
+
+  val monitorName : EventMonitor.MonitorName
 
   def update(event : Event) : Unit
 
