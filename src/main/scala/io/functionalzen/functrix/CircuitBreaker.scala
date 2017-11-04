@@ -1,7 +1,7 @@
 package io.functionalzen.functrix
 
 import io.functionalzen.functrix.Functrix.FunctrixOutput
-
+import io.functionalzen.functrix.event.{CircuitBreakerOpenEvent, CircuitBreakerClosedEvent}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
@@ -11,7 +11,8 @@ object CircuitBreaker {
                                          cause : Throwable = null) extends Exception(message, cause)
 
   def outputExceptionBreaker[I,O](f : (I) => FunctrixOutput[O])
-                                 (implicit ec : ExecutionContext) : Functrix[I,O] = {
+                                 (implicit ec : ExecutionContext,
+                                  em : EventMonitor) : Functrix[I,O] = {
     var breakerClosed = true
 
     val outputBreaker : FunctrixOutput[O] => FunctrixOutput[O] =
@@ -36,12 +37,14 @@ object CircuitBreaker {
   def genericCircuitBreaker[I,O](inputBreaker : I => Boolean = (_: I) => true,
                                  outputBreaker : FunctrixOutput[O] => FunctrixOutput[O] = identity[FunctrixOutput[O]] _)
                                 (f : (I) => FunctrixOutput[O])
-                                (implicit ec : ExecutionContext) : Functrix[I, O] =
+                                (implicit ec : ExecutionContext, em : EventMonitor) : Functrix[I, O] =
     (input: I) =>
       if (inputBreaker(input)) {
+        em update CircuitBreakerClosedEvent
         outputBreaker(f(input))
       }
       else {
+        em update CircuitBreakerOpenEvent
         Functrix wrapException CircuitBreakerOpenException()
       }
 

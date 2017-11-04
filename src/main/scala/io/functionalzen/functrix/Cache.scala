@@ -1,7 +1,7 @@
 package io.functionalzen.functrix
 
 import io.functionalzen.functrix.Functrix.FunctrixOutput
-
+import io.functionalzen.functrix.event.{CacheHitEvent, CacheMissEvent, CacheUpdateEvent}
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
@@ -10,13 +10,16 @@ object Cache {
 
   def fixedSizeCache[I,O](maxCacheSize : Int)
                          (f : (I) => FunctrixOutput[O])
-                         (implicit ec : ExecutionContext) : Functrix[I,O] = {
+                         (implicit ec : ExecutionContext,
+                          em : EventMonitor) : Functrix[I,O] = {
 
     var finiteQueue = immutable.Queue.empty[(I,O)]
     var cache = immutable.Map.empty[I,O]
 
     @scala.annotation.tailrec
-    def dropElements[E](queue : immutable.Queue[E], dropCount : Int) : immutable.Queue[E] =
+    def dropElements[E](queue : immutable.Queue[E],
+                        dropCount : Int)
+                       (implicit em : EventMonitor) : immutable.Queue[E] =
       if(dropCount <= 0)
         queue
       else
@@ -37,15 +40,17 @@ object Cache {
 
   def genericCache[I,O](queryCache : (I) => Future[O], updateCache : (I, O) => Unit)
                        (f : (I) => FunctrixOutput[O])
-                       (implicit ec : ExecutionContext) : Functrix[I,O] =
+                       (implicit ec : ExecutionContext, em : EventMonitor) : Functrix[I,O] =
     (input: I) =>
       queryCache(input)
         .andThen {
-          case Success(_) => /** monitor update **/
+          case Success(_) => em update CacheHitEvent
         }
         .recoverWith {
-          case _ => f(input) andThen {
-            case Success(o) => updateCache(input, o)
+          case _ => { em update CacheMissEvent ; f(input) } andThen {
+            case Success(o) =>
+              em update CacheUpdateEvent
+              updateCache(input, o)
           }
         }
 
