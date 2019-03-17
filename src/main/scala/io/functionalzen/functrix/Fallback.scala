@@ -10,13 +10,13 @@ import scala.concurrent.ExecutionContext
 object Fallback {
 
   final def fallbackValue[I,O](default : O)
-                              (f : (I) => FunctrixOutput[O])
+                              (f : I => FunctrixOutput[O])
                               (implicit ec : ExecutionContext,
                                em : EventMonitor) : Functrix[I,O] =
-    genericFallback(() => default)(f)
+    genericFallback((_ : I) => default)(f)
 
-  final def genericFallback[I,O](default : () => O)
-                                (f : (I) => FunctrixOutput[O])
+  final def genericFallback[I,O](default : I => O)
+                                (f : I => FunctrixOutput[O])
                                 (implicit ec : ExecutionContext, em : EventMonitor): Functrix[I, O] =
     (input: I) =>
       f(input) fallbackTo {
