@@ -21,7 +21,7 @@ object Fallback {
     (input: I) =>
       f(input) fallbackTo {
         em update FallbackEvent
-        wrapOutput(default())
+        wrapOutput(default(input))
       }
 
 }//end object Fallback
